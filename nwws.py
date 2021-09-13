@@ -56,14 +56,6 @@ class MUCBot(sleekxmpp.ClientXMPP):
         # will be processed by both handlers.
         self.add_event_handler("groupchat_message", self.muc_message)
 
-        # The groupchat_presence event is triggered whenever a
-        # presence stanza is received from any chat room, including
-        # any presences you send yourself. To limit event handling
-        # to a single room, use the events muc::room@server::presence,
-        # muc::room@server::got_online, or muc::room@server::got_offline.
-        self.add_event_handler("muc::%s::got_online" % self.room,
-                               self.muc_online)
-
     def start(self, event):
         """
         Process the session_start event.
@@ -107,11 +99,6 @@ class MUCBot(sleekxmpp.ClientXMPP):
                    for stanza objects and the Message stanza to see
                    how it may be used.
         """
-        #if msg['mucnick'] != self.nick and self.nick in msg['body']:
-        #    self.send_message(mto=msg['from'].bare,
-        #                      mbody="I heard that, %s." % msg['mucnick'],
-        #                      mtype='groupchat')
-        #print(str(msg))
         print('INFO\t message stanza rcvd from nwws-oi saying... ' + msg['body'])
         xmldoc = minidom.parseString(str(msg))
         itemlist = xmldoc.getElementsByTagName('x')
@@ -120,7 +107,29 @@ class MUCBot(sleekxmpp.ClientXMPP):
         awipsid = itemlist[0].attributes['awipsid'].value.lower()
         id = itemlist[0].attributes['id'].value
         content = itemlist[0].firstChild.nodeValue
-        if awipsid:
+        
+        interested_products = [
+            'afmrah',
+            'ffarah',
+            'ffsrah',
+            'ffwrah',
+            'flsrah',
+            'flwrah',
+            'svrrah',
+            'svsrah',
+            'torrah',
+            'wcnrah',
+            'tcvrah',
+            'hlsrah',
+            'ewwrah',
+            'pshrah',
+            'npwrah',
+            'wswrah',
+            'rfwrah',
+            'aqarah'
+        ]
+        
+        if awipsid is in interested_products:
             dayhourmin = datetime.utcnow().strftime("%d%H%M")
             filename = cccc + '_' + ttaaii + '-' + awipsid + '.' + dayhourmin + '_' + id + '.txt'
             print("DEBUG\t Writing " + filename, file=sys.stderr)
@@ -144,24 +153,6 @@ class MUCBot(sleekxmpp.ClientXMPP):
                     os.system(config['pan_run']+' '+pathtofile+' >/dev/null')
                 except OSError as e:
                     print("ERROR\t Execution failed: " + e, file=sys.stderr)
-
-    def muc_online(self, presence):
-        """
-        Process a presence stanza from a chat room. In this case,
-        presences from users that have just come online are
-        handled by sending a welcome message that includes
-        the user's nickname and role in the room.
-
-        Arguments:
-            presence -- The received presence stanza. See the
-                        documentation for the Presence stanza
-                        to see how else it may be used.
-        """
-        if presence['muc']['nick'] != self.nick:
-            self.send_message(mto=presence['from'].bare,
-                mbody="Hello, %s %s" % (presence['muc']['role'],
-                    presence['muc']['nick']),
-                mtype='groupchat')
 
 
 if __name__ == '__main__':
